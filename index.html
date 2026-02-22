@@ -38,14 +38,15 @@
         .toast { position: fixed; top: 60px; left: 50%; transform: translateX(-50%) translateY(-100px); background: #1a1a1a; color: white; padding: 14px 28px; border-radius: 30px; font-weight: 700; opacity: 0; transition: all 0.3s; z-index: 200; }
         .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
         .stat-card { background: white; border-radius: 20px; padding: 16px; min-width: 100px; }
-        .app-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+        .bank-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 11px; }
+        .app-badge { display: flex; align-items: center; gap: 8px; background: white; border-radius: 16px; padding: 8px 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
     <div class="phone">
         <div class="screen">
             
-            <!-- DASHBOARD - Money Tracker View -->
+            <!-- DASHBOARD -->
             <div id="dashboard" class="page active">
                 <!-- Header -->
                 <div class="flex justify-between items-center mb-6">
@@ -56,14 +57,14 @@
                     <div class="avatar" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">B</div>
                 </div>
 
-                <!-- Total Tracked Card -->
+                <!-- Total Tracked -->
                 <div class="card bg-gradient-to-br from-gray-800 to-gray-900 p-6 mb-5 text-white">
                     <p class="text-gray-400 text-sm mb-1">💰 Total Money Tracked</p>
                     <p class="text-4xl font-extrabold mb-2">$45,230.50</p>
                     <p class="text-gray-400 text-xs">Across all your apps & receipts</p>
                 </div>
 
-                <!-- Quick Stats -->
+                <!-- Stats -->
                 <div class="flex gap-3 mb-6">
                     <div class="stat-card flex-1">
                         <p class="text-gray-400 text-xs mb-1">📤 Sent</p>
@@ -79,7 +80,7 @@
                     </div>
                 </div>
 
-                <!-- MAIN ACTIONS - Voice & Camera -->
+                <!-- QUICK LOG -->
                 <p class="text-sm font-bold text-gray-600 mb-4">⚡ QUICK LOG</p>
                 
                 <div class="flex justify-center gap-6 mb-6">
@@ -108,25 +109,44 @@
                     </div>
                 </div>
 
-                <!-- Connected Apps -->
+                <!-- TRACKED FROM - With Bank Logos -->
                 <p class="text-sm font-bold text-gray-600 mb-3">📱 TRACKED FROM</p>
                 
                 <div class="flex gap-3 mb-6 overflow-x-auto pb-2">
-                    <div class="flex items-center gap-2 bg-white rounded-full px-4 py-2 shadow-sm">
-                        <div class="app-icon bg-blue-500">💳</div>
-                        <span class="text-sm font-semibold text-gray-700">BPI</span>
+                    <!-- BPI -->
+                    <div class="app-badge">
+                        <div class="bank-icon" style="background: #8B0000; color: white;">BPI</div>
+                        <span class="text-sm font-bold text-gray-700">BPI</span>
                     </div>
-                    <div class="flex items-center gap-2 bg-white rounded-full px-4 py-2 shadow-sm">
-                        <div class="app-icon bg-green-500">📱</div>
-                        <span class="text-sm font-semibold text-gray-700">GCash</span>
+                    
+                    <!-- GCash -->
+                    <div class="app-badge">
+                        <div class="bank-icon" style="background: #005CE6; color: white;">G</div>
+                        <span class="text-sm font-bold text-gray-700">GCash</span>
                     </div>
-                    <div class="flex items-center gap-2 bg-white rounded-full px-4 py-2 shadow-sm">
-                        <div class="app-icon bg-blue-400">💰</div>
-                        <span class="text-sm font-semibold text-gray-700">PayPal</span>
+                    
+                    <!-- PayPal -->
+                    <div class="app-badge">
+                        <div class="bank-icon" style="background: #003087; color: white;">PP</div>
+                        <span class="text-sm font-bold text-gray-700">PayPal</span>
                     </div>
-                    <div class="flex items-center gap-2 bg-white rounded-full px-4 py-2 shadow-sm">
-                        <div class="app-icon bg-purple-500">🧾</div>
-                        <span class="text-sm font-semibold text-gray-700">Receipts</span>
+                    
+                    <!-- Maya -->
+                    <div class="app-badge">
+                        <div class="bank-icon" style="background: #00D632; color: white;">M</div>
+                        <span class="text-sm font-bold text-gray-700">Maya</span>
+                    </div>
+                    
+                    <!-- Wise -->
+                    <div class="app-badge">
+                        <div class="bank-icon" style="background: #00B9FF; color: white;">W</div>
+                        <span class="text-sm font-bold text-gray-700">Wise</span>
+                    </div>
+                    
+                    <!-- Receipts -->
+                    <div class="app-badge">
+                        <div class="bank-icon" style="background: #FF6B35; color: white;">🧾</div>
+                        <span class="text-sm font-bold text-gray-700">Receipts</span>
                     </div>
                 </div>
 
@@ -136,12 +156,10 @@
                     <span class="text-sm font-semibold text-yellow-600 cursor-pointer" onclick="navigate('transactions')">See all →</span>
                 </div>
 
-                <div id="transactionList" class="space-y-3">
-                    <!-- Transactions loaded here -->
-                </div>
+                <div id="transactionList" class="space-y-3"></div>
             </div>
 
-            <!-- HISTORY PAGE -->
+            <!-- HISTORY -->
             <div id="transactions" class="page">
                 <div class="flex justify-between items-center mb-6">
                     <div>
@@ -149,11 +167,10 @@
                         <p class="text-2xl font-bold text-gray-800">📊 Transactions</p>
                     </div>
                 </div>
-
                 <div id="allTransactions" class="space-y-3"></div>
             </div>
 
-            <!-- VOICE PAGE -->
+            <!-- VOICE -->
             <div id="voice" class="page">
                 <div class="flex flex-col items-center justify-center h-full pt-10">
                     <div class="relative mb-10">
@@ -166,51 +183,32 @@
                     </div>
 
                     <p id="voiceText" class="text-2xl font-bold text-gray-800 mb-2">Tap to say "Hey Gege"</p>
-                    <p id="voiceSub" class="text-sm text-gray-500 text-center px-8">I'll capture your screen and log the transaction automatically</p>
-
-                    <div id="voiceResponse" class="mt-8 p-4 bg-yellow-100 rounded-2xl hidden max-w-xs">
-                        <p class="text-yellow-800 font-bold text-center"></p>
-                    </div>
+                    <p id="voiceSub" class="text-sm text-gray-500 text-center px-8">I'll capture your screen and log the transaction</p>
                 </div>
             </div>
 
-            <!-- SETTINGS PAGE -->
+            <!-- SETTINGS -->
             <div id="settings" class="page">
-                <div class="flex justify-between items-center mb-6">
-                    <p class="text-2xl font-bold text-gray-800">⚙️ Settings</p>
-                </div>
+                <div class="flex justify-between items-center mb-6"><p class="text-2xl font-bold text-gray-800">⚙️ Settings</p></div>
 
                 <div class="card bg-white p-4 mb-4 flex items-center gap-4">
                     <div class="avatar" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">B</div>
-                    <div class="flex-1">
-                        <p class="font-bold text-gray-800">Boss</p>
-                        <p class="text-sm text-gray-500">Money Tracker User</p>
-                    </div>
+                    <div class="flex-1"><p class="font-bold text-gray-800">Boss</p><p class="text-sm text-gray-500">Money Tracker</p></div>
                 </div>
 
                 <div class="space-y-3">
                     <button onclick="exportData()" class="card bg-white p-4 w-full flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <span class="text-2xl">📤</span>
-                            <span class="font-bold text-gray-700">Export All Data</span>
-                        </div>
+                        <div class="flex items-center gap-3"><span class="text-2xl">📤</span><span class="font-bold text-gray-700">Export Data</span></div>
                         <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                     </button>
 
                     <button onclick="clearData()" class="card bg-red-50 p-4 w-full flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <span class="text-2xl">🗑️</span>
-                            <span class="font-bold text-red-500">Clear All Logs</span>
-                        </div>
+                        <div class="flex items-center gap-3"><span class="text-2xl">🗑️</span><span class="font-bold text-red-500">Clear Logs</span></div>
                         <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                     </button>
                 </div>
 
-                <div class="mt-8 p-4 bg-gray-100 rounded-2xl">
-                    <p class="text-xs text-gray-500 text-center">💡 Tip: Say "Hey Siri, open Gege" for hands-free logging!</p>
-                </div>
-
-                <p class="text-center text-xs text-gray-400 mt-6">Gege v2.0 • AI Money Tracker 🚀</p>
+                <p class="text-center text-xs text-gray-400 mt-8">Gege v2.0 • AI Money Tracker 🚀</p>
             </div>
 
         </div>
@@ -228,21 +226,14 @@
     <div id="ocrOverlay" class="ocr-overlay">
         <p class="text-yellow-400 text-2xl font-bold mb-2">🧠 AI Analyzing</p>
         <p class="text-gray-400 text-sm mb-6">Reading your transaction...</p>
-        <div class="w-72 h-48 border-2 border-yellow-400 rounded-2xl relative overflow-hidden mb-6 bg-gray-800">
-            <div class="scan-line"></div>
-            <div class="absolute inset-0 flex items-center justify-center">
-                <p class="text-gray-600 text-4xl">📸</p>
-            </div>
-        </div>
-        
-        <p id="ocrText" class="text-white font-semibold">Scanning screen...</p>
+        <div class="w-72 h-48 border-2 border-yellow-400 rounded-2xl relative overflow-hidden mb-6 bg-gray-800"><div class="scan-line"></div></div>
+        <p id="ocrText" class="text-white font-semibold">Scanning...</p>
     </div>
 
     <!-- Toast -->
     <div id="toast" class="toast"><span id="toastMsg"></span></div>
 
     <script>
-        // Data
         let transactions = JSON.parse(localStorage.getItem('gege_v2')) || [
             { id: '1', type: 'sent', amount: 2500, currency: 'PHP', recipient: 'John D.', app: 'GCash', date: new Date().toISOString() },
             { id: '2', type: 'sent', amount: 45, currency: 'USD', recipient: 'Sarah C.', app: 'PayPal', date: new Date().toISOString() },
@@ -250,13 +241,21 @@
         ];
         let listening = false;
 
-        // Init
+        const bankColors = {
+            'BPI': { bg: '#8B0000', text: 'white' },
+            'GCash': { bg: '#005CE6', text: 'white' },
+            'PayPal': { bg: '#003087', text: 'white' },
+            'Maya': { bg: '#00D632', text: 'white' },
+            'Wise': { bg: '#00B9FF', text: 'white' },
+            'Card': { bg: '#FF6B35', text: 'white' },
+            'Manual': { bg: '#9B59B6', text: 'white' }
+        };
+
         document.addEventListener('DOMContentLoaded', () => {
             renderTransactions();
             updateStats();
         });
 
-        // Navigation
         function navigate(page) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.getElementById(page).classList.add('active');
@@ -265,12 +264,10 @@
             if (page === 'transactions') renderAllTransactions();
         }
 
-        // Update stats
         function updateStats() {
             document.getElementById('txCount').textContent = transactions.length;
         }
 
-        // Render transactions
         function renderTransactions() {
             const list = document.getElementById('transactionList');
             const recent = transactions.slice(0, 4);
@@ -285,13 +282,12 @@
 
         function createTxHTML(tx) {
             const isSent = tx.type === 'sent';
-            const appIcons = { 'GCash': '💚', 'PayPal': '💙', 'BPI': '❤️', 'Maya': '💜', 'Wise': '🩵', 'Card': '💳', 'Manual': '✏️' };
-            const icon = appIcons[tx.app] || '📱';
+            const colors = bankColors[tx.app] || { bg: '#666', text: 'white' };
             
             return `
                 <div class="card bg-white p-4 flex items-center justify-between">
                     <div class="flex items-center gap-3">
-                        <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl" style="background: ${isSent ? '#FFE4E1' : '#E8F5E9'}">${icon}</div>
+                        <div class="bank-icon" style="background: ${colors.bg}; color: ${colors.text};">${tx.app.substring(0,2).toUpperCase()}</div>
                         <div>
                             <p class="font-bold text-gray-800">${tx.app}</p>
                             <p class="text-sm text-gray-500">${isSent ? 'To' : 'From'}: ${tx.recipient}</p>
@@ -303,7 +299,6 @@
             `;
         }
 
-        // Voice Flow - "Hey Gege"
         async function startVoiceFlow() {
             navigate('voice');
             setTimeout(toggleListening, 400);
@@ -318,7 +313,6 @@
             const text = document.getElementById('voiceText');
             const sub = document.getElementById('voiceSub');
             
-            // Active state
             btn.classList.add('bg-yellow-400');
             btn.classList.remove('bg-gray-800');
             icon.classList.remove('text-yellow-400');
@@ -326,30 +320,23 @@
             document.getElementById('ring1').classList.remove('hidden');
             document.getElementById('ring2').classList.remove('hidden');
             text.textContent = 'Listening...';
-            sub.textContent = 'Waiting for your command';
             
-            // "Yes!" response
             await wait(1500);
             text.textContent = 'Yes! 👋';
             sub.textContent = 'Capturing screen...';
             
-            // Shutter + OCR
             await wait(600);
-            playShutter();
             document.getElementById('ocrOverlay').classList.add('active');
             
-            // Simulate OCR reading BPI/GCash/PayPal screen
             await wait(1500);
-            document.getElementById('ocrText').textContent = '🔍 Reading transaction...';
+            document.getElementById('ocrText').textContent = '🔍 Reading...';
             await wait(1500);
             document.getElementById('ocrText').textContent = '✓ Found: Sent ₱2,500 via GCash';
             await wait(1000);
             document.getElementById('ocrOverlay').classList.remove('active');
             
-            // Add transaction
             addTx({ type: 'sent', amount: 2500, currency: 'PHP', recipient: 'Maria S.', app: 'GCash' });
             
-            // Reset
             btn.classList.remove('bg-yellow-400');
             btn.classList.add('bg-gray-800');
             icon.classList.add('text-yellow-400');
@@ -357,29 +344,27 @@
             document.getElementById('ring1').classList.add('hidden');
             document.getElementById('ring2').classList.add('hidden');
             text.textContent = '✓ Logged!';
-            sub.textContent = 'Sent ₱2,500 to Maria via GCash';
+            sub.textContent = 'Sent ₱2,500 via GCash';
             listening = false;
             
             setTimeout(() => {
                 text.textContent = 'Tap to say "Hey Gege"';
-                sub.textContent = 'I\'ll capture your screen and log the transaction';
+                sub.textContent = 'I\'ll capture and log your transaction';
                 navigate('dashboard');
             }, 2500);
         }
 
-        // Camera Flow - Receipt
         async function startCameraFlow() {
             navigate('voice');
             document.getElementById('voiceText').textContent = '📷 Camera Mode';
-            document.getElementById('voiceSub').textContent = 'Point at receipt and tap shutter';
+            document.getElementById('voiceSub').textContent = 'Point at receipt...';
             
-            // Simulate camera shutter
             await wait(1500);
             document.getElementById('ocrOverlay').classList.add('active');
-            document.getElementById('ocrText').textContent = '📸 Capturing receipt...';
+            document.getElementById('ocrText').textContent = '📸 Capturing...';
             
             await wait(2000);
-            document.getElementById('ocrText').textContent = '🔍 Reading items...';
+            document.getElementById('ocrText').textContent = '🔍 Reading receipt...';
             await wait(1500);
             document.getElementById('ocrText').textContent = '✓ Found: $47.25 at Starbucks';
             await wait(1000);
@@ -393,30 +378,26 @@
             setTimeout(() => navigate('dashboard'), 2500);
         }
 
-        // Manual add
         function openAddModal() {
-            const type = confirm('Did you SEND money? (OK = Send, Cancel = Receive)') ? 'sent' : 'received';
+            const type = confirm('Did you SEND money? (OK=Send, Cancel=Receive)') ? 'sent' : 'received';
             const amount = prompt('Amount:');
             if (!amount || isNaN(amount)) return;
-            const currency = prompt('Currency (USD/PHP):', 'PHP') || 'PHP';
+            const currency = prompt('Currency:', 'PHP') || 'PHP';
             const recipient = prompt(type === 'sent' ? 'To:' : 'From:');
             if (!recipient) return;
-            const app = prompt('App used (GCash/PayPal/BPI/etc):', 'GCash') || 'Manual';
-            
+            const app = prompt('App (GCash/PayPal/BPI/etc):', 'GCash') || 'Manual';
             addTx({ type, amount: parseFloat(amount), currency: currency.toUpperCase(), recipient, app });
             showToast('✓ Transaction logged!');
         }
 
-        // Add transaction
         function addTx(data) {
             const tx = { id: Date.now().toString(), ...data, date: new Date().toISOString() };
             transactions.unshift(tx);
             localStorage.setItem('gege_v2', JSON.stringify(transactions));
             renderTransactions();
-            showToast('✓ Saved to dashboard!');
+            showToast('✓ Saved!');
         }
 
-        // Utils
         function formatMoney(amount, currency) {
             const symbols = { USD: '$', PHP: '₱', CAD: 'CA$', EUR: '€' };
             return (symbols[currency] || '$') + amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -434,12 +415,6 @@
         }
 
         function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
-        
-        function playShutter() {
-            const audio = new Audio();
-            audio.src = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=';
-            audio.play().catch(() => {});
-        }
 
         function showToast(msg) {
             const toast = document.getElementById('toast');
@@ -460,11 +435,11 @@
         }
 
         function clearData() {
-            if (confirm('Delete all transaction logs?')) {
+            if (confirm('Delete all logs?')) {
                 transactions = [];
                 localStorage.setItem('gege_v2', JSON.stringify(transactions));
                 renderTransactions();
-                showToast('🗑️ All cleared!');
+                showToast('🗑️ Cleared!');
             }
         }
     </script>
