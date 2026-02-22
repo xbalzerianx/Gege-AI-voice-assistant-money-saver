@@ -2,715 +2,331 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gege - AI Voice Money Tracker</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600&display=swap" rel="stylesheet">
+    <script src='https://unpkg.com/tesseract.js@4.1.1/dist/tesseract.min.js'></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        * { 
-            font-family: 'Inter', sans-serif; 
-            -webkit-tap-highlight-color: transparent;
-        }
-        body { background: #e5e5e5; }
-        .phone-frame {
-            width: 375px;
-            height: 812px;
-            background: #fdfbf7;
-            border-radius: 40px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
-            overflow: hidden;
-            position: relative;
-        }
-        .screen {
-            width: 100%;
-            height: 100%;
-            overflow-y: auto;
-            overflow-x: hidden;
-            background: #fdfbf7;
-        }
+        * { font-family: 'Nunito', sans-serif; }
+        body { background: #F5E6C8; }
+        .phone { width: 375px; height: 812px; background: #FFFBF0; border-radius: 45px; box-shadow: 0 25px 60px rgba(0,0,0,0.2), 0 0 0 12px #1a1a1a; overflow: hidden; position: relative; margin: 0 auto; }
+        .screen { width: 100%; height: 100%; overflow-y: auto; background: #FFFBF0; }
         .screen::-webkit-scrollbar { display: none; }
-        .tab-bar {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 80px;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border-top: 1px solid rgba(0, 0, 0, 0.05);
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            padding-bottom: 20px;
-        }
-        .tab-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .tab-item.active { color: #f97316; }
-        .tab-item:not(.active) { color: #9ca3af; }
-        .page { display: none; padding: 24px; padding-bottom: 100px; min-height: 100%; }
+        .card { border-radius: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        .nav { position: absolute; bottom: 20px; left: 20px; right: 20px; height: 70px; background: #1a1a1a; border-radius: 35px; display: flex; justify-content: space-around; align-items: center; }
+        .nav-item { width: 50px; height: 50px; border-radius: 16px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s; }
+        .nav-item.active { background: #F4D03F; }
+        .nav-item.active svg { color: #1a1a1a; }
+        .nav-item:not(.active) svg { color: #888; }
+        .page { display: none; padding: 20px; padding-bottom: 120px; }
         .page.active { display: block; }
-        
-        /* Animations */
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-        .pulse-anim { animation: pulse 2s infinite; }
-        
-        @keyframes wave {
-            0% { transform: scale(1); opacity: 0.5; }
-            100% { transform: scale(1.5); opacity: 0; }
-        }
-        .wave-anim {
-            position: absolute;
-            width: 140px;
-            height: 140px;
-            border-radius: 50%;
-            background: #f97316;
-            animation: wave 2s infinite;
-        }
-        
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 100;
-            justify-content: center;
-            align-items: flex-end;
-        }
+        .avatar { width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; color: white; border: 3px solid white; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .badge-sent { background: #FFB6C1; color: #C71585; padding: 6px 14px; border-radius: 20px; font-weight: 600; font-size: 13px; }
+        .badge-received { background: #90EE90; color: #228B22; padding: 6px 14px; border-radius: 20px; font-weight: 600; font-size: 13px; }
+        .btn-yellow { background: #F4D03F; color: #1a1a1a; padding: 14px 24px; border-radius: 20px; font-weight: 700; box-shadow: 0 4px 15px rgba(244, 208, 63, 0.4); }
+        .btn-pink { background: #E8A0BF; color: white; padding: 14px 24px; border-radius: 20px; font-weight: 700; }
+        @keyframes pulse-ring { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(1.5); opacity: 0; } }
+        .voice-ring { position: absolute; width: 160px; height: 160px; border-radius: 50%; background: #F4D03F; animation: pulse-ring 1.5s infinite; }
+        .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 100; justify-content: center; align-items: flex-end; }
         .modal.active { display: flex; }
-        .modal-content {
-            background: white;
-            border-radius: 24px 24px 0 0;
-            width: 100%;
-            max-height: 80%;
-            overflow-y: auto;
-            padding: 24px;
-            animation: slideUp 0.3s ease;
-        }
-        @keyframes slideUp {
-            from { transform: translateY(100%); }
-            to { transform: translateY(0); }
-        }
-        
-        /* Input styles */
-        input, select {
-            outline: none;
-        }
-        input:focus, select:focus {
-            border-color: #f97316;
-        }
+        .modal-content { background: #FFFBF0; border-radius: 30px 30px 0 0; width: 100%; max-height: 85%; overflow-y: auto; padding: 24px; }
+        .ocr-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(26,26,26,0.95); z-index: 150; display: none; flex-direction: column; align-items: center; justify-content: center; }
+        .ocr-overlay.active { display: flex; }
+        .scan-line { width: 80%; height: 2px; background: #F4D03F; box-shadow: 0 0 10px #F4D03F; animation: scan 2s infinite; }
+        @keyframes scan { 0%, 100% { transform: translateY(-100px); opacity: 0; } 50% { transform: translateY(100px); opacity: 1; } }
+        .toast { position: fixed; top: 50px; left: 50%; transform: translateX(-50%) translateY(-100px); background: #1a1a1a; color: white; padding: 14px 28px; border-radius: 30px; font-weight: 600; opacity: 0; transition: all 0.3s; z-index: 200; }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-8">
-    
-    <div class="flex gap-12 items-start">
-        <!-- Phone Frame -->
-        <div class="phone-frame">
-            <div id="screen" class="screen">
-                
-                <!-- Dashboard Page -->
-                <div id="dashboard" class="page active">
-                    <!-- Header -->
-                    <div class="flex justify-between items-center mb-6">
-                        <div>
-                            <p class="text-2xl font-light text-gray-800">Good morning, Boss! 👋</p>
-                            <p class="text-sm text-gray-400 mt-1">Here's your money overview</p>
-                        </div>
-                        <div class="w-11 h-11 rounded-full bg-orange-500 flex items-center justify-center">
-                            <span class="text-white font-medium">B</span>
-                        </div>
-                    </div>
-
-                    <!-- Balance Card -->
-                    <div class="bg-orange-500 rounded-3xl p-6 mb-5 text-white">
-                        <p class="text-sm opacity-80 mb-2">Total Tracked</p>
-                        <p class="text-4xl font-light">$45,230.50</p>
-                        <p class="text-xs opacity-60 mt-1">Across all currencies</p>
-                    </div>
-
-                    <!-- Stats -->
-                    <div class="flex gap-3 mb-6">
-                        <div class="flex-1 bg-white rounded-2xl p-4 border border-gray-100 border-l-4 border-l-red-400">
-                            <div class="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center mb-3">
-                                <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
-                            </div>
-                            <p class="text-xs text-gray-400 mb-1">Spent</p>
-                            <p class="text-lg font-medium text-red-500">$8,234.75</p>
-                            <p class="text-xs text-gray-400">This month</p>
-                        </div>
-
-                        <div class="flex-1 bg-white rounded-2xl p-4 border border-gray-100 border-l-4 border-l-green-400">
-                            <div class="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center mb-3">
-                                <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
-                            </div>
-                            <p class="text-xs text-gray-400 mb-1">Received</p>
-                            <p class="text-lg font-medium text-green-500">$12,500.00</p>
-                            <p class="text-xs text-gray-400">This month</p>
-                        </div>
-                    </div>
-
-                    <!-- Quick Actions -->
-                    <p class="text-lg font-medium text-gray-800 mb-4">Quick Actions</p>
-                    
-                    <div class="flex justify-between mb-6">
-                        <div class="flex flex-col items-center cursor-pointer" onclick="showVoice()">
-                            <div class="w-14 h-14 rounded-2xl bg-orange-100 flex items-center justify-center mb-2">
-                                <svg class="w-6 h-6 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
-                            </div>
-                            <span class="text-xs text-gray-500">Say "Hey Gege"</span>
-                        </div>
-
-                        <div class="flex flex-col items-center cursor-pointer" onclick="openCamera()">
-                            <div class="w-14 h-14 rounded-2xl bg-orange-100 flex items-center justify-center mb-2">
-                                <svg class="w-6 h-6 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                            </div>
-                            <span class="text-xs text-gray-500">Scan Receipt</span>
-                        </div>
-
-                        <div class="flex flex-col items-center cursor-pointer" onclick="openAddModal()">
-                            <div class="w-14 h-14 rounded-2xl bg-orange-100 flex items-center justify-center mb-2">
-                                <svg class="w-6 h-6 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                            </div>
-                            <span class="text-xs text-gray-500">Add Manual</span>
-                        </div>
-                    </div>
-
-                    <!-- Recent Transactions -->
-                    <div class="flex justify-between items-center mb-4">
-                        <p class="text-lg font-medium text-gray-800">Recent Transactions</p>
-                        <span class="text-sm text-orange-500 cursor-pointer" onclick="showPage('transactions')">See All</span>
-                    </div>
-
-                    <div id="dashboardTransactions" class="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-                        <!-- Transactions will be loaded here -->
-                    </div>
-
-                    <p class="text-center text-sm text-gray-400 mt-6">📊 <span id="transactionCount">0</span> transactions this month</p>
-                </div>
-
-                <!-- Transactions Page -->
-                <div id="transactions" class="page">
-                    <div class="flex justify-between items-center mb-6">
-                        <p class="text-2xl font-medium text-gray-800">Transactions</p>
-                        <div class="w-10 h-10 rounded-xl bg-white border border-gray-200 flex items-center justify-center cursor-pointer" onclick="openFilterModal()">
-                            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
-                        </div>
-                    </div>
-
-                    <div class="bg-white rounded-2xl p-4 border border-gray-100 mb-6">
-                        <div class="flex">
-                            <div class="flex-1 text-center">
-                                <p class="text-xs text-gray-400 mb-1">This Month</p>
-                                <p class="text-base font-medium text-gray-800"><span id="monthCount">0</span> txns</p>
-                            </div>
-                            <div class="w-px bg-gray-200"></div>
-                            
-                            <div class="flex-1 text-center">
-                                <p class="text-xs text-gray-400 mb-1">Total Volume</p>
-                                <p class="text-base font-medium text-gray-800">$<span id="totalVolume">0</span></p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="allTransactions" class="space-y-3">
-                        <!-- All transactions loaded here -->
-                    </div>
-                </div>
-
-                <!-- Voice Page -->
-                <div id="voice" class="page">
-                    <div class="flex justify-between items-center mb-8">
-                        <p class="text-2xl font-medium text-gray-800">Gege Voice</p>
-                        <div class="w-10 h-10 rounded-xl bg-white border border-gray-200 flex items-center justify-center cursor-pointer" onclick="showCommands()">
-                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        </div>
-                    </div>
-
-                    <!-- Voice Circle -->
-                    <div class="flex flex-col items-center mt-12 mb-8">
-                        <div class="relative">
-                            <div id="wave1" class="wave-anim hidden"></div>
-                            <div id="wave2" class="wave-anim hidden" style="animation-delay: 0.5s"></div>
-                            
-                            <button id="micBtn" onclick="toggleListening()" class="w-36 h-36 rounded-full bg-white border-4 border-gray-200 flex items-center justify-center shadow-lg transition-all active:scale-95">
-                                <svg id="micIcon" class="w-12 h-12 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
-                                </svg>
-                            </button>
-                        </div>
-
-                        <p id="voiceHint" class="mt-6 text-sm text-gray-500 font-medium">Tap & hold to speak</p>
-                    </div>
-
-                    <!-- Response Box -->
-                    <div id="responseBox" class="bg-orange-50 border border-orange-200 rounded-2xl p-5 mb-6">
-                        <p id="responseText" class="text-orange-600 font-medium text-center">Say "Hey Gege" to start</p>
-                    </div>
-
-                    <!-- Quick Commands -->
-                    <p class="text-sm font-semibold text-gray-500 text-center mb-4">Quick Actions</p>
-
-                    <div class="flex justify-around">
-                        <div class="flex flex-col items-center cursor-pointer" onclick="openCamera()">
-                            <div class="w-14 h-14 rounded-2xl bg-white border border-gray-200 flex items-center justify-center mb-2">
-                                <svg class="w-6 h-6 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                            </div>
-                            <span class="text-xs text-gray-500">Camera</span>
-                        </div>
-
-                        <div class="flex flex-col items-center cursor-pointer" onclick="openScreenshot()">
-                            <div class="w-14 h-14 rounded-2xl bg-white border border-gray-200 flex items-center justify-center mb-2">
-                                <svg class="w-6 h-6 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                            </div>
-                            <span class="text-xs text-gray-500">Screenshot</span>
-                        </div>
-
-                        <div class="flex flex-col items-center cursor-pointer" onclick="openAddModal()">
-                            <div class="w-14 h-14 rounded-2xl bg-white border border-gray-200 flex items-center justify-center mb-2">
-                                <svg class="w-6 h-6 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                            </div>
-                            <span class="text-xs text-gray-500">Manual</span>
-                        </div>
-
-                        <div class="flex flex-col items-center cursor-pointer" onclick="showPage('transactions')">
-                            <div class="w-14 h-14 rounded-2xl bg-white border border-gray-200 flex items-center justify-center mb-2">
-                                <svg class="w-6 h-6 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
-                            </div>
-                            <span class="text-xs text-gray-500">History</span>
-                        </div>
-                    </div>
-
-                    <!-- Voice Commands List -->
-                    <div id="commandsList" class="mt-8 hidden">
-                        <p class="text-sm font-medium text-gray-800 mb-4">Voice Commands</p>
-                        <div class="space-y-2">
-                            <div class="bg-white rounded-xl p-3 border border-gray-100">
-                                <p class="text-sm text-gray-800">🎙️ <span class="font-medium">"Hey Gege"</span> - Wake up</p>
-                            </div>
-                            <div class="bg-white rounded-xl p-3 border border-gray-100">
-                                <p class="text-sm text-gray-800">💰 <span class="font-medium">"I sent $50 to John"</span> - Log transaction</p>
-                            </div>
-                            <div class="bg-white rounded-xl p-3 border border-gray-100">
-                                <p class="text-sm text-gray-800">📊 <span class="font-medium">"Show my transactions"</span> - View history</p>
-                            </div>
-                            <div class="bg-white rounded-xl p-3 border border-gray-100">
-                                <p class="text-sm text-gray-800">💵 <span class="font-medium">"How much did I spend?"</span> - Get summary</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Settings Page -->
-                <div id="settings" class="page">
-                    <div class="mb-6">
-                        <p class="text-2xl font-medium text-gray-800">Settings</p>
-                    </div>
-
-                    <!-- Profile Card -->
-                    <div class="bg-white rounded-2xl p-4 border border-gray-100 mb-6 flex items-center gap-4">
-                        <div class="w-14 h-14 rounded-full bg-orange-500 flex items-center justify-center">
-                            <span class="text-white font-medium text-lg">B</span>
-                        </div>
-                        <div class="flex-1">
-                            <p class="font-medium text-gray-800">Boss</p>
-                            <p class="text-sm text-gray-400">boss@example.com</p>
-                        </div>
-                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                    </div>
-
-                    <!-- Settings Options -->
-                    <div class="space-y-4">
-                        <div>
-                            <p class="text-xs text-gray-400 uppercase tracking-wider mb-3">Preferences</p>
-                            
-                            <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-                                <div class="flex items-center justify-between p-4 border-b border-gray-100">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-9 h-9 rounded-lg bg-orange-100 flex items-center justify-center">
-                                            <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                                        </div>
-                                        <span class="text-gray-800">Notifications</span>
-                                    </div>
-                                    <div class="w-11 h-6 bg-orange-500 rounded-full relative cursor-pointer">
-                                        <div class="w-5 h-5 bg-white rounded-full absolute right-0.5 top-0.5"></div>
-                                    </div>
-                                </div>
-
-                                <div class="flex items-center justify-between p-4 border-b border-gray-100">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-9 h-9 rounded-lg bg-orange-100 flex items-center justify-center">
-                                            <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path></svg>
-                                        </div>
-                                        <span class="text-gray-800">Auto Screen Capture</span>
-                                    </div>
-                                    <div class="w-11 h-6 bg-orange-500 rounded-full relative cursor-pointer">
-                                        <div class="w-5 h-5 bg-white rounded-full absolute right-0.5 top-0.5"></div>
-                                    </div>
-                                </div>
-
-                                <div class="flex items-center justify-between p-4">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-9 h-9 rounded-lg bg-orange-100 flex items-center justify-center">
-                                            <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
-                                        </div>
-                                        <span class="text-gray-800">Dark Mode</span>
-                                    </div>
-                                    <div class="w-11 h-6 bg-gray-300 rounded-full relative cursor-pointer">
-                                        <div class="w-5 h-5 bg-white rounded-full absolute left-0.5 top-0.5"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div>
-                            <p class="text-xs text-gray-400 uppercase tracking-wider mb-3">Data</p>
-                            
-                            <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-                                <div class="flex items-center justify-between p-4 border-b border-gray-100 cursor-pointer" onclick="exportData()">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-9 h-9 rounded-lg bg-orange-100 flex items-center justify-center">
-                                            <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-                                        </div>
-                                        <span class="text-gray-800">Export Data</span>
-                                    </div>
-                                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                                </div>
-
-                                <div class="flex items-center justify-between p-4 cursor-pointer" onclick="clearAllData()">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-9 h-9 rounded-lg bg-red-100 flex items-center justify-center">
-                                            <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                        </div>
-                                        <span class="text-red-500">Clear All Data</span>
-                                    </div>
-                                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                                </div>
-                            </div>
-                        </div>
-
-                        <p class="text-center text-xs text-gray-400 mt-8">Gege v1.0.0 • Made with ❤️</p>
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- Tab Bar -->
-            <div class="tab-bar">
-                <div class="tab-item active" onclick="showPage('dashboard')">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-                    <span class="text-xs">Home</span>
-                </div>
-
-                <div class="tab-item" onclick="showPage('transactions')">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
-                    <span class="text-xs">History</span>
-                </div>
-
-                <div class="tab-item" onclick="showPage('voice')">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
-                    <span class="text-xs">Gege</span>
-                </div>
-
-                <div class="tab-item" onclick="showPage('settings')">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                    <span class="text-xs">Settings</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Add Transaction Modal -->
-        <div id="addModal" class="modal">
-            <div class="modal-content">
+<body class="min-h-screen flex items-center justify-center p-4">
+    <div class="phone">
+        <div class="screen">
+            <!-- Dashboard -->
+            <div id="dashboard" class="page active">
                 <div class="flex justify-between items-center mb-6">
-                    <p class="text-xl font-medium text-gray-800">Add Transaction</p>
-                    <button onclick="closeAddModal()" class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
-                        <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                    </button>
+                    <div><p class="text-2xl font-bold text-gray-800">Hello, Boss! <span class="text-3xl">👋</span></p></div>
+                    <div class="avatar" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">B</div>
                 </div>
-
-                <form onsubmit="addTransaction(event)">
-                    <div class="mb-4">
-                        <label class="block text-sm text-gray-500 mb-2">Type</label>
-                        <div class="flex gap-3">
-                            <label class="flex-1">
-                                <input type="radio" name="type" value="sent" class="hidden peer" checked>
-                                <div class="text-center py-3 rounded-xl border-2 border-gray-200 peer-checked:border-orange-500 peer-checked:bg-orange-50 cursor-pointer">
-                                    <span class="text-gray-600 peer-checked:text-orange-600">Sent</span>
-                                </div>
-                            </label>
-                            <label class="flex-1">
-                                <input type="radio" name="type" value="received" class="hidden peer">
-                                <div class="text-center py-3 rounded-xl border-2 border-gray-200 peer-checked:border-green-500 peer-checked:bg-green-50 cursor-pointer">
-                                    <span class="text-gray-600 peer-checked:text-green-600">Received</span>
-                                </div>
-                            </label>
-                        </div>
+                <div class="card bg-white p-6 mb-5">
+                    <p class="text-gray-500 text-sm mb-1">Your Balance</p>
+                    <p class="text-4xl font-extrabold text-gray-800 mb-4">$45,230.50</p>
+                    <div class="flex gap-3">
+                        <button onclick="startVoiceFlow()" class="btn-yellow flex-1 flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
+                            "Hey Gege"
+                        </button>
+                        <button onclick="startCameraFlow()" class="btn-pink flex-1 flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path></svg>
+                            Camera
+                        </button>
                     </div>
-
-                    <div class="mb-4">
-                        <label class="block text-sm text-gray-500 mb-2">Amount</label>
-                        <div class="flex gap-3">
-                            <select name="currency" class="w-24 px-4 py-3 rounded-xl border border-gray-200 bg-white">
-                                <option value="USD">$</option>
-                                <option value="PHP">₱</option>
-                                <option value="CAD">CA$</option>
-                                <option value="EUR">€</option>
-                            </select>
-                            <input type="number" name="amount" step="0.01" required placeholder="0.00" class="flex-1 px-4 py-3 rounded-xl border border-gray-200">
-                        </div>
+                </div>
+                <p class="text-lg font-bold text-gray-800 mb-4">Send Again</p>
+                <div class="flex gap-4 mb-6 overflow-x-auto pb-2">
+                    <div class="flex flex-col items-center min-w-[70px] cursor-pointer" onclick="openAddModal()">
+                        <div class="w-14 h-14 rounded-full bg-gray-800 flex items-center justify-center mb-2 shadow-lg"><svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg></div>
+                        <span class="text-xs font-semibold text-gray-600">New</span>
                     </div>
+                    <div class="flex flex-col items-center min-w-[70px]"><div class="avatar" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">S</div><span class="text-xs font-semibold text-gray-600 mt-2">Sarah</span></div>
+                    <div class="flex flex-col items-center min-w-[70px]"><div class="avatar" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">J</div><span class="text-xs font-semibold text-gray-600 mt-2">John</span></div>
+                    <div class="flex flex-col items-center min-w-[70px]"><div class="avatar" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">M</div><span class="text-xs font-semibold text-gray-600 mt-2">Mike</span></div>
+                </div>
+                <div class="flex justify-between items-center mb-4">
+                    <p class="text-lg font-bold text-gray-800">Recent</p>
+                    <span class="text-sm font-semibold text-gray-500 cursor-pointer" onclick="navigate('transactions')">See all</span>
+                </div>
+                <div id="transactionList" class="space-y-3"></div>
+            </div>
 
-                    <div class="mb-4">
-                        <label class="block text-sm text-gray-500 mb-2">To / From</label>
-                        <input type="text" name="recipient" required placeholder="Name or description" class="w-full px-4 py-3 rounded-xl border border-gray-200">
+            <!-- History -->
+            <div id="transactions" class="page">
+                <div class="flex justify-between items-center mb-6"><p class="text-2xl font-bold text-gray-800">History</p></div>
+                <div id="allTransactions" class="space-y-3"></div>
+            </div>
+
+            <!-- Voice -->
+            <div id="voice" class="page">
+                <div class="flex flex-col items-center justify-center h-full pt-20">
+                    <div class="relative mb-8">
+                        <div id="ring1" class="voice-ring hidden"></div>
+                        <div id="ring2" class="voice-ring hidden" style="animation-delay: 0.5s"></div>
+                        <button id="micBtn" onclick="toggleListening()" class="w-40 h-40 rounded-full bg-gray-800 flex items-center justify-center shadow-2xl relative z-10">
+                            <svg id="micIcon" class="w-16 h-16 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
+                        </button>
                     </div>
+                    <p id="voiceText" class="text-xl font-bold text-gray-800 mb-2">Tap to say "Hey Gege"</p>
+                    <p id="voiceSub" class="text-sm text-gray-500">Or "Hey Siri, open Gege"</p>
+                </div>
+            </div>
 
-                    <div class="mb-6">
-                        <label class="block text-sm text-gray-500 mb-2">App / Source</label>
-                        <select name="app" class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white">
-                            <option value="PayPal">PayPal</option>
-                            <option value="GCash">GCash</option>
-                            <option value="Maya">Maya</option>
-                            <option value="Wise">Wise</option>
-                            <option value="BPI">BPI</option>
-                            <option value="Chase">Chase</option>
-                            <option value="Messenger">Messenger</option>
-                            <option value="Other">Other</option>
-                        </select>
-                    </div>
-
-                    <button type="submit" class="w-full py-4 rounded-xl bg-orange-500 text-white font-medium">Add Transaction</button>
-                </form>
+            <!-- Settings -->
+            <div id="settings" class="page">
+                <div class="flex justify-between items-center mb-6"><p class="text-2xl font-bold text-gray-800">Settings</p></div>
+                <div class="card bg-white p-4 mb-4 flex items-center gap-4">
+                    <div class="avatar" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">B</div>
+                    <div class="flex-1"><p class="font-bold text-gray-800">Boss</p><p class="text-sm text-gray-500">boss@gege.app</p></div>
+                </div>
+                <div class="space-y-3">
+                    <button onclick="exportData()" class="card bg-white p-4 w-full flex items-center justify-between"><span class="font-semibold text-gray-700">📤 Export</span><svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button>
+                    <button onclick="clearData()" class="card bg-red-50 p-4 w-full flex items-center justify-between"><span class="font-semibold text-red-500">🗑️ Clear All</span><svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button>
+                </div>
+                <p class="text-center text-xs text-gray-400 mt-8">Gege v2.0 🚀</p>
             </div>
         </div>
 
-        <!-- Toast Notification -->
-        <div id="toast" class="fixed top-4 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-6 py-3 rounded-full shadow-lg opacity-0 transition-opacity pointer-events-none z-50">
-            <span id="toastMessage"></span>
+        <!-- Bottom Nav -->
+        <div class="nav">
+            <div class="nav-item active" onclick="navigate('dashboard')"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg></div>
+            <div class="nav-item" onclick="navigate('transactions')"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg></div>
+            <div class="nav-item" onclick="navigate('voice')"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg></div>
+            <div class="nav-item" onclick="navigate('settings')"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg></div>
         </div>
     </div>
 
+    <!-- OCR Overlay -->
+    <div id="ocrOverlay" class="ocr-overlay">
+        <p class="text-yellow-400 text-xl font-bold mb-4">🔍 AI Analyzing...</p>
+        <div class="w-64 h-40 border-2 border-yellow-400 rounded-xl relative overflow-hidden mb-4"><div class="scan-line"></div></div>
+        <p id="ocrText" class="text-white text-sm">Reading screen...</p>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast"><span id="toastMsg"></span></div>
+
     <script>
-        // Data storage
-        let transactions = JSON.parse(localStorage.getItem('gege_transactions')) || [
-            { id: '1', type: 'sent', amount: 45.00, currency: 'USD', recipient: 'Sarah Chen', app: 'PayPal', date: new Date().toISOString() },
-            { id: '2', type: 'received', amount: 2500, currency: 'PHP', recipient: 'John Doe', app: 'GCash', date: new Date().toISOString() },
-            { id: '3', type: 'sent', amount: 120.50, currency: 'CAD', recipient: 'Transfer', app: 'Wise', date: new Date(Date.now() - 86400000).toISOString() },
+        // Data
+        let transactions = JSON.parse(localStorage.getItem('gege_v2')) || [
+            { id: '1', type: 'sent', amount: 45, currency: 'USD', recipient: 'Sarah', app: 'PayPal', date: new Date().toISOString() },
+            { id: '2', type: 'received', amount: 2500, currency: 'PHP', recipient: 'John', app: 'GCash', date: new Date().toISOString() },
         ];
+        let listening = false;
+        let worker = null;
 
-        let isListening = false;
-
-        // Initialize
+        // Init
         document.addEventListener('DOMContentLoaded', () => {
             renderTransactions();
-            updateStats();
+            initTesseract();
         });
 
+        async function initTesseract() {
+            try {
+                worker = await Tesseract.createWorker('eng');
+                console.log('Tesseract ready');
+            } catch(e) {
+                console.log('Tesseract init delayed');
+            }
+        }
+
         // Navigation
-        function showPage(page) {
+        function navigate(page) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.getElementById(page).classList.add('active');
-            
-            document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             event.currentTarget.classList.add('active');
-            
-            if (page === 'transactions') {
-                renderAllTransactions();
-            }
+            if (page === 'transactions') renderAllTransactions();
         }
 
-        function showVoice() {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.getElementById('voice').classList.add('active');
-            
-            document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-item')[2].classList.add('active');
-        }
-
-        // Voice functionality
-        function toggleListening() {
-            const btn = document.getElementById('micBtn');
-            const icon = document.getElementById('micIcon');
-            const hint = document.getElementById('voiceHint');
-            const responseText = document.getElementById('responseText');
-            const wave1 = document.getElementById('wave1');
-            const wave2 = document.getElementById('wave2');
-
-            if (!isListening) {
-                isListening = true;
-                btn.classList.add('bg-orange-500', 'border-orange-500');
-                btn.classList.remove('bg-white', 'border-gray-200');
-                icon.classList.remove('text-orange-500');
-                icon.classList.add('text-white');
-                hint.textContent = 'Listening...';
-                responseText.textContent = 'Listening...';
-                wave1.classList.remove('hidden');
-                wave2.classList.remove('hidden');
-
-                setTimeout(() => {
-                    responseText.textContent = 'Yes! 👋';
-                    
-                    setTimeout(() => {
-                        const newTx = {
-                            id: Date.now().toString(),
-                            type: 'sent',
-                            amount: 45.00,
-                            currency: 'USD',
-                            recipient: 'Sarah Chen',
-                            app: 'PayPal',
-                            date: new Date().toISOString()
-                        };
-                        transactions.unshift(newTx);
-                        saveTransactions();
-                        renderTransactions();
-                        updateStats();
-                        
-                        responseText.textContent = 'Got it! You sent $45 to Sarah via PayPal. Logged! ✓';
-                        showToast('Transaction added!');
-                        stopListening();
-                    }, 2000);
-                }, 1500);
-            } else {
-                stopListening();
-            }
-        }
-
-        function stopListening() {
-            const btn = document.getElementById('micBtn');
-            const icon = document.getElementById('micIcon');
-            const hint = document.getElementById('voiceHint');
-            const wave1 = document.getElementById('wave1');
-            const wave2 = document.getElementById('wave2');
-
-            isListening = false;
-            btn.classList.remove('bg-orange-500', 'border-orange-500');
-            btn.classList.add('bg-white', 'border-gray-200');
-            icon.classList.add('text-orange-500');
-            icon.classList.remove('text-white');
-            hint.textContent = 'Tap & hold to speak';
-            wave1.classList.add('hidden');
-            wave2.classList.add('hidden');
-        }
-
-        function showCommands() {
-            const list = document.getElementById('commandsList');
-            list.classList.toggle('hidden');
-        }
-
-        // Transaction management
+        // Render
         function renderTransactions() {
-            const container = document.getElementById('dashboardTransactions');
-            const recent = transactions.slice(0, 3);
-            
-            container.innerHTML = recent.map(tx => `
-                <div class="flex items-center justify-between p-4 border-b border-gray-100 last:border-0">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl ${tx.type === 'sent' ? 'bg-red-100' : 'bg-green-100'} flex items-center justify-center">
-                            <svg class="w-5 h-5 ${tx.type === 'sent' ? 'text-red-500' : 'text-green-500'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${tx.type === 'sent' ? 'M5 10l7-7m0 0l7 7m-7-7v18' : 'M19 14l-7 7m0 0l-7-7m7 7V3'}"></path>
-                            </svg>
-                        </div>
-                        <div>
-                            <p class="font-medium text-gray-800">${tx.app} <span class="text-gray-400">•</span> ${tx.recipient}</p>
-                            <p class="text-xs text-gray-400 mt-0.5">${formatDate(tx.date)}</p>
-                        </div>
-                    </div>
-                    <span class="font-medium ${tx.type === 'sent' ? 'text-red-500' : 'text-green-500'}">${tx.type === 'sent' ? '-' : '+'}${formatCurrency(tx.amount, tx.currency)}</span>
-                </div>
-            `).join('');
+            const list = document.getElementById('transactionList');
+            const recent = transactions.slice(0, 5);
+            list.innerHTML = recent.map(tx => createTxHTML(tx)).join('');
         }
 
         function renderAllTransactions() {
-            const container = document.getElementById('allTransactions');
-            
-            container.innerHTML = transactions.map(tx => `
-                <div class="bg-white rounded-2xl p-4 border border-gray-100 flex items-center justify-between">
+            const list = document.getElementById('allTransactions');
+            list.innerHTML = transactions.map(tx => createTxHTML(tx)).join('');
+        }
+
+        function createTxHTML(tx) {
+            const isSent = tx.type === 'sent';
+            return `
+                <div class="card bg-white p-4 flex items-center justify-between">
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl ${tx.type === 'sent' ? 'bg-red-100' : 'bg-green-100'} flex items-center justify-center">
-                            <svg class="w-5 h-5 ${tx.type === 'sent' ? 'text-red-500' : 'text-green-500'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${tx.type === 'sent' ? 'M5 10l7-7m0 0l7 7m-7-7v18' : 'M19 14l-7 7m0 0l-7-7m7 7V3'}"></path>
-                            </svg>
-                        </div>
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold" style="background: ${isSent ? '#FFB6C1' : '#90EE90'}; color: ${isSent ? '#C71585' : '#228B22'}">${tx.recipient[0]}</div>
                         <div>
-                            <p class="font-medium text-gray-800">${tx.app} <span class="text-gray-400">•</span> ${tx.recipient}</p>
-                            <p class="text-xs text-gray-400 mt-0.5">${formatDate(tx.date)}</p>
+                            <p class="font-bold text-gray-800">${tx.app} • ${tx.recipient}</p>
+                            <p class="text-xs text-gray-400">${formatDate(tx.date)}</p>
                         </div>
                     </div>
-                    <span class="font-medium ${tx.type === 'sent' ? 'text-red-500' : 'text-green-500'}">${tx.type === 'sent' ? '-' : '+'}${formatCurrency(tx.amount, tx.currency)}</span>
+                    <span class="${isSent ? 'badge-sent' : 'badge-received'}">${isSent ? '-' : '+'}${formatMoney(tx.amount, tx.currency)}</span>
                 </div>
-            `).join('');
+            `;
         }
 
-        function addTransaction(e) {
-            e.preventDefault();
-            const form = e.target;
-            const formData = new FormData(form);
+        // Voice Flow
+        async function startVoiceFlow() {
+            navigate('voice');
+            setTimeout(toggleListening, 300);
+        }
+
+        async function toggleListening() {
+            if (listening) return;
+            listening = true;
             
-            const newTx = {
-                id: Date.now().toString(),
-                type: formData.get('type'),
-                amount: parseFloat(formData.get('amount')),
-                currency: formData.get('currency'),
-                recipient: formData.get('recipient'),
-                app: formData.get('app'),
-                date: new Date().toISOString()
-            };
+            const btn = document.getElementById('micBtn');
+            const icon = document.getElementById('micIcon');
+            const text = document.getElementById('voiceText');
+            const sub = document.getElementById('voiceSub');
             
-            transactions.unshift(newTx);
-            saveTransactions();
+            // Active state
+            btn.classList.add('bg-yellow-400');
+            btn.classList.remove('bg-gray-800');
+            icon.classList.remove('text-yellow-400');
+            icon.classList.add('text-gray-800');
+            document.getElementById('ring1').classList.remove('hidden');
+            document.getElementById('ring2').classList.remove('hidden');
+            text.textContent = 'Listening...';
+            
+            // "Yes!" response
+            await wait(1500);
+            text.textContent = 'Yes! 👋';
+            
+            // Shutter sound + OCR
+            await wait(500);
+            playShutter();
+            document.getElementById('ocrOverlay').classList.add('active');
+            
+            // Simulate OCR
+            await wait(2000);
+            document.getElementById('ocrText').textContent = 'Found: $45.00 to Sarah via PayPal';
+            await wait(1500);
+            document.getElementById('ocrOverlay').classList.remove('active');
+            
+            // Add transaction
+            addTx({ type: 'sent', amount: 45, currency: 'USD', recipient: 'Sarah', app: 'PayPal' });
+            
+            // Reset
+            btn.classList.remove('bg-yellow-400');
+            btn.classList.add('bg-gray-800');
+            icon.classList.add('text-yellow-400');
+            icon.classList.remove('text-gray-800');
+            document.getElementById('ring1').classList.add('hidden');
+            document.getElementById('ring2').classList.add('hidden');
+            text.textContent = 'Tap to say "Hey Gege"';
+            sub.textContent = '✓ Logged! Sent $45 to Sarah';
+            listening = false;
+            
+            setTimeout(() => {
+                sub.textContent = 'Or "Hey Siri, open Gege"';
+                navigate('dashboard');
+            }, 2000);
+        }
+
+        // Camera Flow
+        async function startCameraFlow() {
+            navigate('voice');
+            document.getElementById('voiceText').textContent = 'Camera Mode 📷';
+            document.getElementById('voiceSub').textContent = 'Point at receipt...';
+            
+            await wait(1000);
+            document.getElementById('ocrOverlay').classList.add('active');
+            document.getElementById('ocrText').textContent = 'Analyzing receipt...';
+            
+            await wait(2500);
+            document.getElementById('ocrText').textContent = 'Found: $28.50 at Starbucks';
+            
+            await wait(1500);
+            document.getElementById('ocrOverlay').classList.remove('active');
+            
+            addTx({ type: 'sent', amount: 28.50, currency: 'USD', recipient: 'Starbucks', app: 'Card' });
+            
+            document.getElementById('voiceSub').textContent = '✓ Logged! $28.50 at Starbucks';
+            
+            setTimeout(() => navigate('dashboard'), 2000);
+        }
+
+        // Transaction functions
+        function addTx(data) {
+            const tx = { id: Date.now().toString(), ...data, date: new Date().toISOString() };
+            transactions.unshift(tx);
+            localStorage.setItem('gege_v2', JSON.stringify(transactions));
             renderTransactions();
-            updateStats();
-            closeAddModal();
-            showToast('Transaction added!');
-            form.reset();
+            showToast('Transaction added! ✓');
         }
 
-        function updateStats() {
-            document.getElementById('transactionCount').textContent = transactions.length;
-            document.getElementById('monthCount').textContent = transactions.length;
-            
-            const total = transactions.reduce((sum, tx) => sum + (tx.type === 'received' ? tx.amount : 0), 0);
-            document.getElementById('totalVolume').textContent = total.toLocaleString();
-        }
-
-        function saveTransactions() {
-            localStorage.setItem('gege_transactions', JSON.stringify(transactions));
-        }
-
-        // Modal functions
         function openAddModal() {
-            document.getElementById('addModal').classList.add('active');
+            const amount = prompt('Amount:');
+            if (!amount) return;
+            const recipient = prompt('To/From:');
+            if (!recipient) return;
+            addTx({ type: 'sent', amount: parseFloat(amount), currency: 'USD', recipient, app: 'Manual' });
         }
 
-        function closeAddModal() {
-            document.getElementById('addModal').classList.remove('active');
+        // Utils
+        function formatMoney(amount, currency) {
+            const symbols = { USD: '$', PHP: '₱', CAD: 'CA$', EUR: '€' };
+            return (symbols[currency] || '$') + amount.toFixed(2);
         }
 
-        function openCamera() {
-            showToast('Camera feature coming soon!');
+        function formatDate(date) {
+            const d = new Date(date);
+            const now = new Date();
+            const diff = now - d;
+            if (diff < 86400000) return 'Today';
+            if (diff < 172800000) return 'Yesterday';
+            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
         }
 
-        function openScreenshot() {
-            showToast('Screenshot feature coming soon!');
+        function wait(ms) {
+            return new Promise(r => setTimeout(r, ms));
         }
 
-        function openFilterModal() {
-            showToast('Filter feature coming soon!');
+        function playShutter() {
+            // Simulated shutter sound
+            const audio = new Audio();
+            audio.src = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=';
+            audio.play().catch(() => {});
         }
 
-        // Settings functions
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
         function exportData() {
             const data = JSON.stringify(transactions, null, 2);
             const blob = new Blob([data], { type: 'application/json' });
@@ -719,48 +335,17 @@
             a.href = url;
             a.download = 'gege-transactions.json';
             a.click();
-            showToast('Data exported!');
+            showToast('Exported! 📤');
         }
 
-        function clearAllData() {
-            if (confirm('Are you sure? This will delete all transactions.')) {
+        function clearData() {
+            if (confirm('Clear all data?')) {
                 transactions = [];
-                saveTransactions();
+                localStorage.setItem('gege_v2', JSON.stringify(transactions));
                 renderTransactions();
-                updateStats();
-                showToast('All data cleared!');
+                showToast('Cleared! 🗑️');
             }
         }
-
-        // Utilities
-        function formatCurrency(amount, currency) {
-            const symbols = { USD: '$', PHP: '₱', CAD: 'CA$', EUR: '€', GBP: '£' };
-            const symbol = symbols[currency] || currency + ' ';
-            return symbol + amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        }
-
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            const now = new Date();
-            const diff = now - date;
-            
-            if (diff < 86400000) return 'Today';
-            if (diff < 172800000) return 'Yesterday';
-            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        }
-
-        function showToast(message) {
-            const toast = document.getElementById('toast');
-            const toastMessage = document.getElementById('toastMessage');
-            toastMessage.textContent = message;
-            toast.classList.remove('opacity-0');
-            setTimeout(() => toast.classList.add('opacity-0'), 3000);
-        }
-
-        // Close modal on outside click
-        document.getElementById('addModal').addEventListener('click', (e) => {
-            if (e.target.id === 'addModal') closeAddModal();
-        });
     </script>
 </body>
 </html>
